@@ -1,68 +1,104 @@
-# Vinishop
+# Jellyfish E-commerce
 
-Aplicação Laravel para gerenciamento de vinhos.
+Plataforma de e-commerce desenvolvida em Laravel com processamento de pedidos via mensageria (RabbitMQ).
 
 ## 🚀 Configuração Rápida do Ambiente
 
 ### Pré-requisitos
 
-- Docker instalado e em execução
+- Docker e Docker Compose instalados
 - Git
+- Token do GitHub (necessário para instalar dependências)
+
+### Serviços
+
+- **Laravel 12** (PHP 8.5)
+- **MySQL 8.4**
+- **RabbitMQ 3.13** com painel de gerenciamento
 
 ### Instalação
 
 1. **Clone o repositório**:
 ```bash
-git clone git@github.com:petrusnog/vinishop.git
-cd vinishop
+git clone <seu-repositorio>
+cd jellyfish-ecommerce
 ```
 
-2. **Copie o arquivo de ambiente**:
+2. **Crie um token do GitHub**:
+   - Acesse: https://github.com/settings/tokens
+   - Clique em "Generate new token (classic)"
+   - Não precisa marcar nenhuma permissão/escopo
+   - Copie o token gerado
+
+3. **Copie o arquivo de ambiente**:
 ```bash
 cp .env.example .env
 ```
 
-3. **Instale as dependências com Docker** (cria a pasta vendor):
+4. **Configure as variáveis de ambiente no .env**:
+```env
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=jellyfish
+DB_USERNAME=sail
+DB_PASSWORD=password
+
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_PORT=5672
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=guest
+```
+
+5. **Instale as dependências com Docker** (substitua `SEU_TOKEN_AQUI` pelo token do GitHub):
+
+**Linux/Mac:**
 ```bash
 docker run --rm \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):/var/www/html" \
+    -v "$HOME/.composer:/tmp/composer" \
+    -e COMPOSER_HOME=/tmp/composer \
+    -e COMPOSER_AUTH='{"github-oauth":{"github.com":"SEU_TOKEN_AQUI"}}' \
     -w /var/www/html \
-    laravelsail/php83-composer:latest \
+    laravelsail/php84-composer:latest \
     composer install --ignore-platform-reqs
 ```
 
 **Windows (PowerShell):**
 ```powershell
-docker run --rm -v ${PWD}:/var/www/html -w /var/www/html laravelsail/php83-composer:latest composer install --ignore-platform-reqs
+docker run --rm -v ${PWD}:/var/www/html -e COMPOSER_AUTH='{\"github-oauth\":{\"github.com\":\"SEU_TOKEN_AQUI\"}}' -w /var/www/html laravelsail/php84-composer:latest composer install --ignore-platform-reqs
 ```
 
-4. **Suba os containers com Sail**:
+6. **Suba os containers com Sail**:
 ```bash
 ./vendor/bin/sail up -d
 ```
 
-5. **Gere a chave da aplicação**:
+7. **Gere a chave da aplicação**:
 ```bash
 ./vendor/bin/sail artisan key:generate
 ```
 
-6. **Execute as migrations**:
+8. **Execute as migrations**:
 ```bash
 ./vendor/bin/sail artisan migrate
 ```
 
-7. **Instale dependências do NPM**:
+9. **Instale dependências do NPM**:
 ```bash
 ./vendor/bin/sail npm install
 ```
 
-8. **Compile os assets** (opcional):
+10. **Compile os assets** (opcional):
 ```bash
 ./vendor/bin/sail npm run dev
 ```
 
-A aplicação estará disponível em: **http://localhost**
+### URLs de Acesso
+
+- **Aplicação**: http://localhost
+- **RabbitMQ Management**: http://localhost:15672 (usuário: guest, senha: guest)
 
 ## 📋 Comandos Úteis
 
@@ -148,20 +184,22 @@ A aplicação estará disponível em: **http://localhost**
 ./vendor/bin/sail artisan migrate:fresh --seed
 ```
 
-## 🛠️ Atalho (Opcional)
+## 🛠️ Atalhos (Opcional)
 
-Para facilitar, você pode criar um alias no seu terminal:
+Para facilitar, você pode criar alias no seu terminal:
 
 ```bash
 # Adicione ao seu ~/.bashrc ou ~/.zshrc
 alias sail='./vendor/bin/sail'
+alias jellyapi='docker exec -it jelly-api'
+alias jellydb='docker exec -it jelly-mysql mysql -usail -ppassword'
+alias jellyrabbit='docker exec -it jelly-rabbitmq'
 ```
 
 Depois é só usar:
 ```bash
 sail up -d
 sail artisan migrate
-sail npm run dev
 ```
 
 ## 🔧 Solução de Problemas
@@ -186,6 +224,9 @@ chmod -R 755 storage bootstrap/cache
 docker system prune -a
 ./vendor/bin/sail up -d
 ```
+
+### Erro 504 ao instalar dependências
+Certifique-se de que você substituiu `SEU_TOKEN_AQUI` pelo token real do GitHub no comando de instalação.
 
 ## 📚 Documentação
 
