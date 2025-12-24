@@ -25,4 +25,9 @@ class Product extends Model
             self::CATEGORY_MUG => 'Canecas',
         ];
     }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
 }
